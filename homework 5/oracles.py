@@ -68,7 +68,7 @@ class LogRegL2Oracle(BaseSmoothOracle):
         return grad_part + self.regcoef * x
 
     def hess(self, x):
-        # возвращаем плотную матрицу (тесты ожидают матрицу/array)
+        # возвращаем плотную матрицу 
         z = self.matvec_Ax(x)
         s = expit(-self.b * z)
         w = s * (1.0 - s)
@@ -79,7 +79,7 @@ class LogRegL2Oracle(BaseSmoothOracle):
 
 class LogRegL2OptimizedOracle(LogRegL2Oracle):
     """
-    (ИСПРАВЛЕНО) Оптимизированный оракул с кэшированием 
+    Оптимизированный оракул с кэшированием 
     для func/grad/hess и directional-методов.
     """
     def __init__(self, matvec_Ax, matvec_ATx, matmat_ATsA, b, regcoef):
@@ -148,9 +148,8 @@ class LogRegL2OptimizedOracle(LogRegL2Oracle):
         
         x_new = x + alpha * d
         z = Ax + alpha * Ad
-        s = expit(-self.b * z) # (ИСПРАВЛЕНИЕ) Вычисляем 's' здесь для кэша
+        s = expit(-self.b * z) 
 
-        # (ИСПРАВЛЕНИЕ) Обновляем главный кэш
         self._cached_x = np.copy(x_new)
         self._cached_z = z
         self._cached_s = s
@@ -169,14 +168,13 @@ class LogRegL2OptimizedOracle(LogRegL2Oracle):
         z = Ax + alpha * Ad
         s = expit(-self.b * z)
 
-        # (ИСПРАВЛЕНИЕ) Обновляем главный кэш
         self._cached_x = np.copy(x_new)
         self._cached_z = z
         self._cached_s = s
         
         term = (- self.b * s) * Ad
         directional_part = float(np.mean(term))
-        reg_part = float(self.regcoef * np.dot(x_new, d)) # (ИСПРАВЛЕНИЕ) Должно быть x_new, а не x
+        reg_part = float(self.regcoef * np.dot(x_new, d)) 
         return directional_part + reg_part
 
 def create_log_reg_oracle(A, b, regcoef, oracle_type='usual', counters=None):
@@ -200,7 +198,7 @@ def create_log_reg_oracle(A, b, regcoef, oracle_type='usual', counters=None):
             s = np.asarray(s).ravel()
             DA = A.multiply(s[:, np.newaxis])  # масштабируем строки
             M = A.T.dot(DA)
-            return M.toarray()  # возвращаем плотный массив (тесты этого ждут)
+            return M.toarray()  # возвращаем плотный массив
     else:
         A = np.asarray(A)
         def matvec_Ax(x):
@@ -223,7 +221,6 @@ def create_log_reg_oracle(A, b, regcoef, oracle_type='usual', counters=None):
         raise ValueError('Unknown oracle_type=%s' % oracle_type)
 
     oracle = cls(matvec_Ax, matvec_ATx, matmat_ATsA, b, regcoef)
-    # Позволим тестам проверить counters (если им нужен этот объект)
     try:
         oracle.counters = counters
     except Exception:
@@ -273,3 +270,4 @@ def hess_finite_diff(func, x, eps=1e-5):
             H[i, j] = Hij
             H[j, i] = Hij
     return H
+
